@@ -25,6 +25,13 @@ export default defineConfig({
         "src/components/LoginForm.tsx",
         "src/components/player/TestBySlug.tsx",
         "src/lib/cms/public.ts",
+        // Async server components / thin shells, covered by Playwright:
+        "src/components/site/CountryPageView.tsx",
+        "src/components/site/HomeSections.tsx",
+        "src/components/site/SiteFooter.tsx",
+        "src/components/site/SiteHeader.tsx",
+        "src/components/site/Prose.tsx",
+        "src/components/site/Analytics.tsx",
       ],
       thresholds: { "src/lib/**": { lines: 95 }, "src/components/**": { lines: 80 } },
     },

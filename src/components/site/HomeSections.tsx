@@ -1,0 +1,111 @@
+import Link from "next/link";
+import { headers } from "next/headers";
+import { connection } from "next/server";
+import { COUNTRY_NAMES } from "@/lib/countries";
+import { suggestedCountry } from "@/lib/site/geo";
+import { getHomeData } from "@/lib/site/data";
+import { CountryCards } from "./CountryCards";
+
+/** The data-driven home sections. Streams in; the hero and static sections paint first. */
+export async function CountrySelector() {
+  await connection();
+  const [{ countries }, h] = await Promise.all([getHomeData(), headers()]);
+  // Highlight only: visitors are never redirected based on location.
+  const suggested = suggestedCountry(h.get("x-vercel-ip-country"));
+  return <CountryCards countries={countries} suggested={suggested} />;
+}
+
+export async function PopularTests() {
+  await connection();
+  const { tests, countries } = await getHomeData();
+  const links = tests.length
+    ? tests.map((t) => ({
+        href: `/tests/${t.slug}`,
+        label: t.title,
+        hint: COUNTRY_NAMES[t.countryCode],
+      }))
+    : countries.map((c) => ({
+        href: `/${c.code}/practice-test`,
+        label: `${c.name} practice test`,
+        hint: c.description.questions,
+      }));
+  return (
+    <ul className="grid gap-3 sm:grid-cols-2">
+      {links.map((l) => (
+        <li key={l.href}>
+          <Link href={l.href} className="btn btn-outline btn-block justify-between">
+            <span>{l.label}</span>
+            <span className="text-xs font-normal">{l.hint}</span>
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export async function LatestPosts() {
+  await connection();
+  const { latestPosts } = await getHomeData();
+  if (latestPosts.length === 0) return <p>New guides are on the way.</p>;
+  return (
+    <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {latestPosts.map((p) => (
+        <li key={p.path} className="rounded border border-base-300 p-4">
+          <h3 className="font-semibold">
+            <Link href={p.path} className="link">
+              {p.title}
+            </Link>
+          </h3>
+          {p.excerpt && <p className="mt-1 text-sm">{p.excerpt}</p>}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export async function TrustBlock() {
+  await connection();
+  const { countries, stats } = await getHomeData();
+  return (
+    <div className="space-y-3">
+      <p>
+        Every question carries a source reference, and every country page links to the official
+        source and shows when it was last reviewed. Read our{" "}
+        <Link href="/legal/editorial-policy" className="link">
+          editorial and accuracy policy
+        </Link>
+        .
+      </p>
+      <ul className="list-disc space-y-1 pl-6">
+        {countries.map((c) => (
+          <li key={c.code}>
+            {c.name}:{" "}
+            <a
+              href={c.officialSourceUrl}
+              className="link"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              {new URL(c.officialSourceUrl).hostname}
+            </a>
+            {c.lastReviewedAt && (
+              <>
+                {" "}
+                (reviewed{" "}
+                {new Date(c.lastReviewedAt).toLocaleDateString("en-GB", {
+                  month: "long",
+                  year: "numeric",
+                })}
+                )
+              </>
+            )}
+          </li>
+        ))}
+      </ul>
+      <p className="text-sm">
+        {stats.questions} practice question{stats.questions === 1 ? "" : "s"} published
+        {stats.tests > 0 ? ` · ${stats.tests} custom test${stats.tests === 1 ? "" : "s"}` : ""}.
+      </p>
+    </div>
+  );
+}

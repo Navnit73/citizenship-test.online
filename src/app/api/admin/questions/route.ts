@@ -1,4 +1,5 @@
 import { adminRoute, created, readJson } from "@/lib/api/admin-route";
+import { invalidate } from "@/lib/api/revalidate";
 import { createQuestion, listQuestions } from "@/lib/cms/questions";
 
 export const GET = adminRoute("question:write", (actor, req) => {
@@ -14,6 +15,8 @@ export const GET = adminRoute("question:write", (actor, req) => {
   });
 });
 
-export const POST = adminRoute("question:write", async (actor, req) =>
-  created(await createQuestion(actor, (await readJson(req)) as never)),
-);
+export const POST = adminRoute("question:write", async (actor, req) => {
+  const q = await createQuestion(actor, (await readJson(req)) as never);
+  invalidate("questions");
+  return created(q);
+});

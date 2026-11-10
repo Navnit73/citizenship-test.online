@@ -14,7 +14,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "seed": "tsx --env-file=.env.local scripts/seed.ts"
+    "seed": "tsx --env-file=.env.local scripts/seed.ts",
+    "seed:content": "tsx --env-file=.env.local scripts/seed-content.ts"
   },
   "dependencies": {
     "@tiptap/extension-link": "^3.33.0",

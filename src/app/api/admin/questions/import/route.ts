@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { adminRoute, readJson } from "@/lib/api/admin-route";
+import { invalidate } from "@/lib/api/revalidate";
 import { parseQuestionsCsv } from "@/lib/cms/csv";
 import { bulkImportQuestions } from "@/lib/cms/questions";
 import { parse } from "@/lib/cms/shared";
@@ -15,5 +16,7 @@ export const POST = adminRoute("question:write", async (actor, req) => {
   const body = parse(bodySchema, await readJson(req));
   if (!body.rows && body.csv === undefined) throw new ValidationError("Provide rows or csv");
   const rows = body.rows ?? parseQuestionsCsv(body.csv!);
-  return bulkImportQuestions(actor, rows, { dryRun: body.dryRun });
+  const result = await bulkImportQuestions(actor, rows, { dryRun: body.dryRun });
+  if (!body.dryRun) invalidate("questions");
+  return result;
 });

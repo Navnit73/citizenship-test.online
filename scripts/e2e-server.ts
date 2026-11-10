@@ -24,6 +24,9 @@ async function main() {
   })) {
     await UserModel.findOneAndUpdate({ email }, { email, role }, { upsert: true });
   }
+  const editor = await UserModel.findOne({ email: "editor@e2e.test" });
+  const { seedContent } = await import("../src/lib/db/seed/content");
+  await seedContent(String(editor!.id), { publish: true });
   await mongoose.disconnect();
 
   const next = spawn("npx", ["next", "start", "-p", "3100"], {

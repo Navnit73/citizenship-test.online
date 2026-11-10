@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { DynamicMarker } from "@/components/content/DynamicMarker";
+import { PageFallback } from "@/components/site/PageFallback";
 import { TestBySlug } from "@/components/player/TestBySlug";
 import { getPublicTest } from "@/lib/cms/public";
 import { isCountryCode } from "@/lib/countries";
@@ -30,7 +31,7 @@ async function Test({ params }: { params: Promise<{ slug: string }> }) {
 export default function TestPage({ params }: PageProps<"/tests/[slug]">) {
   return (
     <>
-      <Suspense fallback={<p role="status">Loading…</p>}>
+      <Suspense fallback={<PageFallback />}>
         <Test params={params} />
       </Suspense>
       <DynamicMarker />
