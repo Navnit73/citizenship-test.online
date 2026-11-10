@@ -26,7 +26,11 @@ describe("TestPlayer", () => {
 
     await userEvent.click(screen.getByLabelText("1066"));
     await userEvent.click(screen.getByRole("button", { name: /submit answer/i }));
+    expect(screen.getByRole("status")).toHaveTextContent(/correct/i);
+    await userEvent.click(screen.getByRole("button", { name: /next question/i }));
+    expect(screen.getByText(/1 of 1 correct so far/i)).toBeInTheDocument();
     await userEvent.type(screen.getByLabelText(/your answer/i), "constitution{Enter}");
+    await userEvent.click(screen.getByRole("button", { name: /see my results/i }));
 
     expect(await screen.findByRole("heading", { name: /you passed/i })).toBeInTheDocument();
     const saved = listGuestAttempts();
@@ -40,12 +44,44 @@ describe("TestPlayer", () => {
     });
   });
 
+  it("explains the pass mark before starting", async () => {
+    render(<TestPlayer country="uk" loadExam={async () => exam([choice, text])} />);
+    expect(await screen.findByText(/answer/i, { selector: "p" })).toHaveTextContent(
+      /2 questions.*at least 2 right/i,
+    );
+  });
+
+  it("shows the right answer and explanation after a wrong answer", async () => {
+    render(<TestPlayer country="uk" loadExam={async () => exam([choice, text])} />);
+    await userEvent.click(await screen.findByRole("button", { name: /start test/i }));
+    await userEvent.click(screen.getByLabelText("1215"));
+    await userEvent.click(screen.getByRole("button", { name: /submit answer/i }));
+    const feedback = screen.getByRole("status");
+    expect(feedback).toHaveTextContent(/not quite/i);
+    expect(feedback).toHaveTextContent(/correct answer:\s*1066/i);
+    expect(screen.getByLabelText("1215")).toBeDisabled();
+  });
+
+  it("skips per-question feedback in exam conditions", async () => {
+    render(<TestPlayer country="uk" loadExam={async () => exam([choice, text])} />);
+    await userEvent.click(
+      await screen.findByRole("checkbox", { name: /show the correct answer after each/i }),
+    );
+    await userEvent.click(screen.getByRole("button", { name: /start test/i }));
+    await userEvent.click(screen.getByLabelText("1066"));
+    await userEvent.click(screen.getByRole("button", { name: /submit answer/i }));
+    expect(screen.queryByRole("button", { name: /next question/i })).not.toBeInTheDocument();
+    await userEvent.type(screen.getByLabelText(/your answer/i), "constitution{Enter}");
+    expect(await screen.findByRole("heading", { name: /you passed/i })).toBeInTheDocument();
+  });
+
   it("lets the learner pick a study mode before starting", async () => {
     render(<TestPlayer country="uk" loadExam={async () => exam([text])} />);
-    await userEvent.click(await screen.findByRole("radio", { name: /write/i }));
+    await userEvent.click(await screen.findByRole("radio", { name: /read aloud/i }));
     await userEvent.click(screen.getByRole("button", { name: /start test/i }));
     await userEvent.type(screen.getByLabelText(/your answer/i), "constitution{Enter}");
-    await waitFor(() => expect(listGuestAttempts()[0]?.mode).toBe("write"));
+    await userEvent.click(screen.getByRole("button", { name: /see my results/i }));
+    await waitFor(() => expect(listGuestAttempts()[0]?.mode).toBe("listen"));
   });
 
   it("shows a countdown and auto-submits when time runs out", async () => {
@@ -66,6 +102,7 @@ describe("TestPlayer", () => {
     await userEvent.click(await screen.findByRole("button", { name: /start test/i }));
     await userEvent.click(screen.getByLabelText("1066"));
     await userEvent.click(screen.getByRole("button", { name: /submit answer/i }));
+    await userEvent.click(screen.getByRole("button", { name: /see my results/i }));
     await userEvent.click(await screen.findByRole("button", { name: /take another test/i }));
     await waitFor(() => expect(loadExam).toHaveBeenCalledTimes(2));
   });

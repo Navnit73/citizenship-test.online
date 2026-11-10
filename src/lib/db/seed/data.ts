@@ -4,6 +4,7 @@
  */
 import type { CountryCode } from "@/lib/engine/types";
 import type { QuestionInput } from "../repos/questions";
+import { usChapters, usQuestions } from "./us-official";
 
 export const countries = [
   {
@@ -94,8 +95,7 @@ export const countries = [
 
 export const chapters: { countryCode: CountryCode; slug: string; title: string; order: number }[] =
   [
-    { countryCode: "us", slug: "american-government", title: "American Government", order: 1 },
-    { countryCode: "us", slug: "american-history", title: "American History", order: 2 },
+    ...usChapters,
     { countryCode: "uk", slug: "history", title: "A long and illustrious history", order: 1 },
     { countryCode: "uk", slug: "what-is-the-uk", title: "What is the UK?", order: 2 },
     { countryCode: "ca", slug: "who-we-are", title: "Who We Are", order: 1 },
@@ -109,7 +109,7 @@ export const chapters: { countryCode: CountryCode; slug: string; title: string; 
     { countryCode: "au", slug: "australian-values", title: "Australian values", order: 4 },
   ];
 
-type SeedQuestion = Omit<QuestionInput, "chapterId" | "status"> & { chapterSlug: string };
+export type SeedQuestion = Omit<QuestionInput, "chapterId" | "status"> & { chapterSlug: string };
 
 const tf = [
   { id: "true", text: "True" },
@@ -117,55 +117,8 @@ const tf = [
 ];
 
 export const questions: SeedQuestion[] = [
-  // United States (short text, fuzzy matched)
-  {
-    countryCode: "us",
-    versions: ["2025", "2008"],
-    chapterSlug: "american-government",
-    type: "shorttext",
-    prompt: "What is the supreme law of the land?",
-    acceptedAnswers: ["the Constitution", "Constitution"],
-    sourceRef: "USCIS civics test study materials",
-    explanation: "The Constitution is the supreme law of the land.",
-  },
-  {
-    countryCode: "us",
-    versions: ["2025", "2008"],
-    chapterSlug: "american-government",
-    type: "shorttext",
-    prompt: "How many amendments does the Constitution have?",
-    acceptedAnswers: ["27", "twenty-seven"],
-    sourceRef: "USCIS civics test study materials",
-  },
-  {
-    countryCode: "us",
-    versions: ["2025", "2008"],
-    chapterSlug: "american-government",
-    type: "shorttext",
-    prompt: "What is the capital of the United States?",
-    acceptedAnswers: ["Washington, D.C.", "Washington DC"],
-    sourceRef: "USCIS civics test study materials",
-  },
-  {
-    countryCode: "us",
-    versions: ["2025", "2008"],
-    chapterSlug: "american-history",
-    type: "shorttext",
-    prompt: "Who was the first President of the United States?",
-    acceptedAnswers: ["George Washington", "Washington"],
-    sourceRef: "USCIS civics test study materials",
-  },
-  {
-    countryCode: "us",
-    versions: ["2025", "2008"],
-    chapterSlug: "american-government",
-    type: "shorttext",
-    prompt: "Who is the Governor of your state now?",
-    acceptedAnswers: [],
-    tags: ["state-specific"],
-    sourceRef: "USCIS civics test study materials",
-    explanation: "Answer depends on the applicant's state; resolved from a state selector.",
-  },
+  // United States: the official USCIS civics questions (2025 and 2008 tests)
+  ...usQuestions,
   // United Kingdom
   {
     countryCode: "uk",

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { headers } from "next/headers";
 import { connection } from "next/server";
-import { COUNTRY_NAMES } from "@/lib/countries";
 import { suggestedCountry } from "@/lib/site/geo";
 import { getHomeData } from "@/lib/site/data";
 import { CountryCards } from "./CountryCards";
@@ -13,34 +12,6 @@ export async function CountrySelector() {
   // Highlight only: visitors are never redirected based on location.
   const suggested = suggestedCountry(h.get("x-vercel-ip-country"));
   return <CountryCards countries={countries} suggested={suggested} />;
-}
-
-export async function PopularTests() {
-  await connection();
-  const { tests, countries } = await getHomeData();
-  const links = tests.length
-    ? tests.map((t) => ({
-        href: `/tests/${t.slug}`,
-        label: t.title,
-        hint: COUNTRY_NAMES[t.countryCode],
-      }))
-    : countries.map((c) => ({
-        href: `/${c.code}/practice-test`,
-        label: `${c.name} practice test`,
-        hint: c.description.questions,
-      }));
-  return (
-    <ul className="grid gap-3 sm:grid-cols-2">
-      {links.map((l) => (
-        <li key={l.href}>
-          <Link href={l.href} className="btn btn-outline btn-block justify-between">
-            <span>{l.label}</span>
-            <span className="text-xs font-normal">{l.hint}</span>
-          </Link>
-        </li>
-      ))}
-    </ul>
-  );
 }
 
 export async function LatestPosts() {

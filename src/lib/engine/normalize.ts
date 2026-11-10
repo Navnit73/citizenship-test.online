@@ -31,12 +31,23 @@ function tolerance(length: number): number {
   return 0;
 }
 
+const sortedWords = (s: string) =>
+  s
+    .split(" ")
+    .filter((w) => w !== "and")
+    .sort();
+
 /** Normalised, typo-tolerant match against any accepted answer. */
 export function isShortTextCorrect(response: string, acceptedAnswers: string[]): boolean {
   const given = normalizeAnswer(response);
   if (!given) return false;
   return acceptedAnswers.some((accepted) => {
     const target = normalizeAnswer(accepted);
-    return target !== "" && levenshtein(given, target) <= tolerance(target.length);
+    if (target === "") return false;
+    if (levenshtein(given, target) <= tolerance(target.length)) return true;
+    // Multi-part answers ("legislative, executive, and judicial") in any order.
+    const g = sortedWords(given);
+    const t = sortedWords(target);
+    return t.length > 1 && g.join(" ") === t.join(" ");
   });
 }

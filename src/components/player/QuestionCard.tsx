@@ -17,6 +17,8 @@ type Props = {
   onSpeedChange?: (speed: number) => void;
   onAutoPlayChange?: (on: boolean) => void;
   onSubmit: (response: Response) => void;
+  /** After submitting in practice mode: answer stays visible but can't be changed. */
+  locked?: boolean;
 };
 
 const noopSubscribe = () => () => {};
@@ -31,6 +33,7 @@ export function QuestionCard({
   onSpeedChange,
   onAutoPlayChange,
   onSubmit,
+  locked = false,
 }: Props) {
   const [selected, setSelected] = useState<string[]>([]);
   const [typed, setTyped] = useState("");
@@ -62,7 +65,7 @@ export function QuestionCard({
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!canSubmit) return;
+    if (!canSubmit || locked) return;
     onSubmit(isText ? typed : selected);
   }
 
@@ -122,62 +125,79 @@ export function QuestionCard({
   return (
     <form onSubmit={handleSubmit} className="card bg-base-100 border border-base-300 shadow-sm">
       <div className="card-body">
-        <p className="text-sm opacity-80">
-          Question {index + 1} of {total} · {question.chapterTitle}
+        <p className="text-sm">
+          <span className="font-semibold">
+            Question {index + 1} of {total}
+          </span>
+          <span className="opacity-70"> · {question.chapterTitle}</span>
         </p>
+        <progress
+          className="progress progress-primary mb-2 w-full"
+          value={index}
+          max={total}
+          aria-hidden="true"
+        />
         {audioControls}
         {isDictation && showTranscript && (
           <p className="rounded bg-base-200 p-3">{question.acceptedAnswers[0]}</p>
         )}
 
-        {isText ? (
-          <>
-            <p className="text-lg font-semibold" id={`prompt-${question.id}`}>
-              {question.prompt}
-            </p>
-            <label className="form-control">
-              <span className="mb-1 block text-sm">Your answer</span>
-              <input
-                type="text"
-                className="input input-bordered w-full"
-                value={typed}
-                onChange={(e) => setTyped(e.target.value)}
-                autoComplete="off"
-                autoCapitalize="off"
-                spellCheck={false}
-                aria-describedby={`prompt-${question.id}`}
-              />
-            </label>
-          </>
-        ) : (
-          <fieldset className="space-y-2">
-            <legend className="mb-2 text-lg font-semibold">{question.prompt}</legend>
-            {question.type === "multiple" && (
-              <p className="mb-2 text-sm opacity-80">Select all that apply.</p>
-            )}
-            {question.options.map((o) => (
-              <label
-                key={o.id}
-                className="flex cursor-pointer items-center gap-3 rounded border border-base-300 p-3 hover:bg-base-200"
-              >
+        <fieldset disabled={locked} className="contents">
+          {isText ? (
+            <>
+              <p className="text-lg font-semibold" id={`prompt-${question.id}`}>
+                {question.prompt}
+              </p>
+              <label className="form-control">
+                <span className="mb-1 block text-sm">Your answer</span>
                 <input
-                  type={question.type === "multiple" ? "checkbox" : "radio"}
-                  name={`q-${question.id}`}
-                  className={question.type === "multiple" ? "checkbox" : "radio"}
-                  checked={selected.includes(o.id)}
-                  onChange={() => toggle(o.id)}
+                  type="text"
+                  className="input input-bordered w-full"
+                  value={typed}
+                  onChange={(e) => setTyped(e.target.value)}
+                  autoComplete="off"
+                  autoCapitalize="off"
+                  spellCheck={false}
+                  aria-describedby={`prompt-${question.id} hint-${question.id}`}
                 />
-                <span>{o.text}</span>
+                <span id={`hint-${question.id}`} className="mt-1 block text-sm opacity-70">
+                  Type your answer in your own words. Small spelling mistakes and capital letters
+                  don&apos;t matter.
+                </span>
               </label>
-            ))}
-          </fieldset>
-        )}
+            </>
+          ) : (
+            <fieldset className="space-y-2">
+              <legend className="mb-2 text-lg font-semibold">{question.prompt}</legend>
+              {question.type === "multiple" && (
+                <p className="mb-2 text-sm opacity-80">Select all that apply.</p>
+              )}
+              {question.options.map((o) => (
+                <label
+                  key={o.id}
+                  className="flex cursor-pointer items-center gap-3 rounded border border-base-300 p-3 hover:bg-base-200"
+                >
+                  <input
+                    type={question.type === "multiple" ? "checkbox" : "radio"}
+                    name={`q-${question.id}`}
+                    className={question.type === "multiple" ? "checkbox" : "radio"}
+                    checked={selected.includes(o.id)}
+                    onChange={() => toggle(o.id)}
+                  />
+                  <span>{o.text}</span>
+                </label>
+              ))}
+            </fieldset>
+          )}
+        </fieldset>
 
-        <div className="card-actions mt-4 justify-end">
-          <button type="submit" className="btn btn-primary" disabled={!canSubmit}>
-            Submit answer
-          </button>
-        </div>
+        {!locked && (
+          <div className="card-actions mt-4 justify-end">
+            <button type="submit" className="btn btn-primary" disabled={!canSubmit}>
+              Submit answer
+            </button>
+          </div>
+        )}
       </div>
     </form>
   );

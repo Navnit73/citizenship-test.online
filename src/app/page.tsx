@@ -4,12 +4,7 @@ import { Suspense } from "react";
 import { DynamicMarker } from "@/components/content/DynamicMarker";
 import { CardsSkeleton } from "@/components/site/CardsSkeleton";
 import { Faq } from "@/components/site/Faq";
-import {
-  CountrySelector,
-  LatestPosts,
-  PopularTests,
-  TrustBlock,
-} from "@/components/site/HomeSections";
+import { CountrySelector, LatestPosts, TrustBlock } from "@/components/site/HomeSections";
 import { JsonLd } from "@/components/site/JsonLd";
 import { ModeDemo } from "@/components/site/ModeDemo";
 import { buildMetadata } from "@/lib/seo/metadata";
@@ -19,7 +14,7 @@ import { SITE_URL } from "@/lib/site/config";
 export const metadata: Metadata = buildMetadata({
   title: "Free citizenship test practice: US, UK, Canada and Australia",
   description:
-    "Free practice tests for the US, UK, Canadian and Australian citizenship tests. Read, listen and write your answers, with explanations and sources.",
+    "Free practice tests for the US, UK, Canadian and Australian citizenship tests. Instant answers after every question, with explanations and official sources.",
   path: "/",
 });
 
@@ -37,8 +32,8 @@ const FAQ = [
     a: "The United States, the United Kingdom, Canada and Australia, each with practice tests that follow that country's real exam rules.",
   },
   {
-    q: "What are Read, Listen and Write modes?",
-    a: "Read shows questions as text, Listen reads them aloud, and Write lets you type your answers, which is useful for the spoken and written parts of the US test.",
+    q: "Can I hear the questions read aloud?",
+    a: 'Yes. Before you start a test, choose "Hear the questions read aloud". This is good practice for the US test, where an officer asks the questions out loud.',
   },
   {
     q: "How accurate are the questions?",
@@ -51,10 +46,9 @@ const FAQ = [
 ];
 
 const STEPS = [
-  ["Pick your country", "Choose the US, UK, Canada or Australia."],
-  ["Study by chapter", "Browse questions with answers and sources."],
-  ["Take mock tests", "Practise under the real exam rules and timer."],
-  ["Track readiness", "See which chapters need more work."],
+  ["Pick your country", "Choose the test you are preparing for below."],
+  ["Answer questions", "See right away if you were right, with the correct answer and why."],
+  ["Check your score", "Find out if you would pass and which topics need more work."],
 ];
 
 export default function Home() {
@@ -65,17 +59,12 @@ export default function Home() {
           Pass your citizenship test with free practice for the US, UK, Canada and Australia
         </h1>
         <p className="mb-5 max-w-2xl text-lg">
-          Read, listen and write your answers. Every test follows the real exam rules, with
-          explanations and sources.
+          Free, no sign-up. Pick your country, answer real-style questions and see the correct
+          answer after each one.
         </p>
-        <div className="flex flex-wrap gap-3">
-          <Link href="/tests" className="btn btn-primary">
-            Start a free test
-          </Link>
-          <a href="#countries" className="btn btn-outline">
-            Choose your country
-          </a>
-        </div>
+        <a href="#countries" className="btn btn-primary btn-lg">
+          Choose your country to start
+        </a>
       </section>
 
       <section id="countries" aria-labelledby="countries-heading" className="scroll-mt-20">
@@ -91,7 +80,7 @@ export default function Home() {
         <h2 id="how-heading" className="mb-4 text-2xl font-bold">
           How it works
         </h2>
-        <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <ol className="grid gap-4 sm:grid-cols-3">
           {STEPS.map(([title, text], i) => (
             <li key={title} className="rounded border border-base-300 p-4">
               <p className="text-sm opacity-80">Step {i + 1}</p>
@@ -104,19 +93,10 @@ export default function Home() {
 
       <section aria-labelledby="modes-heading">
         <h2 id="modes-heading" className="mb-2 text-2xl font-bold">
-          Read, Listen and Write
+          Try it: three quick questions
         </h2>
-        <p className="mb-4">Try all three study modes with a quick three-question demo.</p>
+        <p className="mb-4">This is how every practice test works.</p>
         <ModeDemo />
-      </section>
-
-      <section aria-labelledby="popular-heading">
-        <h2 id="popular-heading" className="mb-4 text-2xl font-bold">
-          Popular tests
-        </h2>
-        <Suspense fallback={<CardsSkeleton label="Loading tests…" rows={2} compact />}>
-          <PopularTests />
-        </Suspense>
       </section>
 
       <section aria-labelledby="readiness-heading" className="rounded border border-base-300 p-6">

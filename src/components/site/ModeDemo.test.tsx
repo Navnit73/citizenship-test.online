@@ -14,14 +14,16 @@ describe("ModeDemo", () => {
       if (radios.length) await userEvent.click(radios[0]);
       else await userEvent.type(screen.getByLabelText(/your answer/i), "x");
       await userEvent.click(screen.getByRole("button", { name: /submit answer/i }));
+      expect(screen.getByRole("status")).toBeInTheDocument();
+      await userEvent.click(screen.getByRole("button", { name: /next question|see my results/i }));
     }
     expect(await screen.findByText(/you got \d of 3/i)).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: /try again/i }));
     expect(screen.getByText(/question 1 of 3/i)).toBeInTheDocument();
   });
-  it("offers the three study modes", () => {
+  it("offers reading or listening", () => {
     render(<ModeDemo />);
-    for (const name of [/read/i, /listen/i, /write/i]) {
+    for (const name of [/read the question/i, /read aloud/i]) {
       expect(screen.getByRole("radio", { name })).toBeInTheDocument();
     }
   });

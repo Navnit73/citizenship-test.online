@@ -38,8 +38,7 @@ test.describe("home page", () => {
     await expect(page.getByRole("heading", { level: 1 })).toContainText(
       "Pass your citizenship test",
     );
-    await expect(page.getByRole("link", { name: "Start a free test" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Choose your country" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Choose your country to start" })).toBeVisible();
     for (const name of [
       "US Citizenship Test",
       "Life in the UK Test",
@@ -49,7 +48,6 @@ test.describe("home page", () => {
       await expect(page.getByRole("heading", { level: 3, name })).toBeVisible();
     }
     await expect(page.getByRole("heading", { name: "How it works" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Popular tests" })).toBeVisible();
     await expect(page.getByRole("heading", { name: /latest guides/i })).toBeVisible();
     await expect(
       page.getByRole("heading", { name: /where our information comes from/i }),
@@ -72,13 +70,14 @@ test.describe("home page", () => {
   test("the study-mode demo works", async ({ page }) => {
     await page.goto("/");
     const demo = page
-      .getByRole("heading", { name: "Read, Listen and Write" })
+      .getByRole("heading", { name: /three quick questions/i })
       .locator("xpath=ancestor::section");
     for (let i = 0; i < 3; i++) {
       const radio = demo.locator('input[name^="q-"]').first();
       if (await radio.count()) await radio.check();
       else await demo.getByLabel(/your answer/i).fill("the constitution");
       await demo.getByRole("button", { name: /submit answer/i }).click();
+      await demo.getByRole("button", { name: /next question|see my results/i }).click();
     }
     await expect(demo.getByText(/you got \d of 3/i)).toBeVisible();
   });

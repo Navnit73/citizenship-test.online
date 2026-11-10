@@ -28,6 +28,12 @@ describe("levenshtein", () => {
 });
 
 describe("isShortTextCorrect", () => {
+  it("accepts multi-part answers in any order, but not partial ones", () => {
+    const accepted = ["Legislative, executive, and judicial"];
+    expect(isShortTextCorrect("executive, legislative and judicial", accepted)).toBe(true);
+    expect(isShortTextCorrect("judicial executive legislative", accepted)).toBe(true);
+    expect(isShortTextCorrect("executive and judicial", accepted)).toBe(false);
+  });
   const accepted = ["The Constitution", "the U.S. Constitution"];
   it("accepts exact normalised matches", () => {
     expect(isShortTextCorrect("constitution", accepted)).toBe(true);
