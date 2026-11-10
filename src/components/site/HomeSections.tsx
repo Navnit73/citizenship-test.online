@@ -2,7 +2,8 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { connection } from "next/server";
 import { suggestedCountry } from "@/lib/site/geo";
-import { getHomeData } from "@/lib/site/data";
+import { postPath } from "@/lib/cms/paths";
+import { getHomeData, getPostBySlug } from "@/lib/site/data";
 import { CountryCards } from "./CountryCards";
 
 /** The data-driven home sections. Streams in; the hero and static sections paint first. */
@@ -36,16 +37,26 @@ export async function LatestPosts() {
 
 export async function TrustBlock() {
   await connection();
-  const { countries, stats } = await getHomeData();
+  const [{ countries, stats }, policy] = await Promise.all([
+    getHomeData(),
+    getPostBySlug("legal", "editorial-policy"),
+  ]);
   return (
     <div className="space-y-3">
       <p>
         Every question carries a source reference, and every country page links to the official
-        source and shows when it was last reviewed. Read our{" "}
-        <Link href="/legal/editorial-policy" className="link">
-          editorial and accuracy policy
-        </Link>
-        .
+        source and shows when it was last reviewed.
+        {/* Only link the policy once it is published, so the home page never links to a 404. */}
+        {policy && (
+          <>
+            {" "}
+            Read our{" "}
+            <Link href={postPath("legal", policy.slug)} className="link">
+              editorial and accuracy policy
+            </Link>
+            .
+          </>
+        )}
       </p>
       <ul className="list-disc space-y-1 pl-6">
         {countries.map((c) => (

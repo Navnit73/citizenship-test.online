@@ -59,16 +59,25 @@ describe("slotTarget", () => {
 });
 
 describe("page copy", () => {
-  it("every page has a non-empty title and description mentioning the country where relevant", () => {
-    for (const c of COUNTRY_CODES) {
-      for (const p of COUNTRY_PAGES[c]) {
-        expect(p.title("Testland").length).toBeGreaterThan(10);
-        expect(p.description("Testland").length).toBeGreaterThan(20);
-        expect(p.label.length).toBeGreaterThan(2);
-      }
+  const all = COUNTRY_CODES.flatMap((c) => COUNTRY_PAGES[c]);
+  it("every page has a title, heading, description and label of sensible length", () => {
+    for (const p of all) {
+      expect(p.title.length).toBeGreaterThan(10);
+      expect(p.title.length).toBeLessThanOrEqual(60);
+      expect(p.heading.length).toBeGreaterThan(10);
+      expect(p.description.length).toBeGreaterThan(50);
+      expect(p.description.length).toBeLessThanOrEqual(160);
+      expect(p.label.length).toBeGreaterThan(2);
     }
-    expect(getCountryPage("uk", "practice-test")!.title("United Kingdom")).toContain(
-      "United Kingdom",
-    );
+  });
+  it("titles and descriptions are unique across every country page", () => {
+    expect(new Set(all.map((p) => p.title)).size).toBe(all.length);
+    expect(new Set(all.map((p) => p.description)).size).toBe(all.length);
+  });
+  it("uses each country's own search terms", () => {
+    expect(getCountryPage("uk", "practice-test")!.title).toContain("Life in the UK");
+    expect(getCountryPage("ca", "practice-test")!.title).toContain("Canadian");
+    expect(getCountryPage("au", "practice-test")!.title).toContain("Australian");
+    expect(getCountryPage("us", "civics-questions")!.title).toContain("civics");
   });
 });

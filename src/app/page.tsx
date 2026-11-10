@@ -8,7 +8,7 @@ import { CountrySelector, LatestPosts, TrustBlock } from "@/components/site/Home
 import { JsonLd } from "@/components/site/JsonLd";
 import { ModeDemo } from "@/components/site/ModeDemo";
 import { buildMetadata } from "@/lib/seo/metadata";
-import { organizationLd } from "@/lib/seo/schema";
+import { organizationLd, websiteLd } from "@/lib/seo/schema";
 import { SITE_URL } from "@/lib/site/config";
 
 export const metadata: Metadata = buildMetadata({
@@ -132,6 +132,7 @@ export default function Home() {
 
       <Faq items={FAQ} />
       <JsonLd data={organizationLd(SITE_URL)} />
+      <JsonLd data={websiteLd(SITE_URL)} />
       <DynamicMarker />
     </main>
   );

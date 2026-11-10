@@ -49,7 +49,8 @@ async function RelatedPosts({ code }: { code: CountryCode }) {
   );
 }
 
-function PageNav({ code, current }: { code: CountryPageViewProps["code"]; current: string }) {
+/** Sibling pages for one country: keeps every country page one click from the others. */
+export function PageNav({ code, current }: { code: CountryCode; current: string }) {
   return (
     <nav aria-label={`${COUNTRY_NAMES[code]} pages`} className="mb-6 flex flex-wrap gap-2">
       {COUNTRY_PAGES[code].map((p) => (
@@ -88,9 +89,7 @@ async function Hub({ code, slug }: CountryPageViewProps) {
     <main className="space-y-8">
       <div>
         <Breadcrumbs items={crumbs(code, slug)} />
-        <h1 className="mb-3 text-3xl font-bold">
-          {summary.testName}: rules, format and free practice
-        </h1>
+        <h1 className="mb-3 text-3xl font-bold">{getCountryPage(code, slug)!.heading}</h1>
         <p>
           The {summary.testName} for {summary.name} has{" "}
           {summary.description.questions.toLowerCase()}, and the pass mark is{" "}
@@ -143,12 +142,11 @@ async function Hub({ code, slug }: CountryPageViewProps) {
 
 async function Questions({ code, slug }: CountryPageViewProps) {
   const [bank, data] = await Promise.all([getCountryQuestions(code), getCountryData(code)]);
-  const name = COUNTRY_NAMES[code];
   return (
     <main className="space-y-8">
       <div>
         <Breadcrumbs items={crumbs(code, slug)} />
-        <h1 className="mb-3 text-3xl font-bold">{name} citizenship test questions and answers</h1>
+        <h1 className="mb-3 text-3xl font-bold">{getCountryPage(code, slug)!.heading}</h1>
         <p>
           {data.questionCount} practice question{data.questionCount === 1 ? "" : "s"} for the{" "}
           {data.summary.testName}, grouped by chapter, with answers and the source each one comes
@@ -199,7 +197,7 @@ async function Content({ code, slug }: CountryPageViewProps) {
     <main className="space-y-8">
       <div>
         <Breadcrumbs items={crumbs(code, slug)} />
-        <h1 className="mb-3 text-3xl font-bold">{def.title(COUNTRY_NAMES[code])}</h1>
+        <h1 className="mb-3 text-3xl font-bold">{def.heading}</h1>
         {body ? (
           <Toc items={body.toc} />
         ) : (

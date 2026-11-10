@@ -3,11 +3,12 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { Breadcrumbs } from "@/components/site/Breadcrumbs";
+import { PageNav } from "@/components/site/CountryPageView";
 import { ExamFacts, OfficialSource } from "@/components/site/ExamFacts";
 import { Faq } from "@/components/site/Faq";
 import { JsonLd } from "@/components/site/JsonLd";
 import { TestPlayer } from "@/components/player/TestPlayer";
-import { COUNTRY_CODES, COUNTRY_NAMES, isCountryCode } from "@/lib/countries";
+import { COUNTRY_CODES, isCountryCode } from "@/lib/countries";
 import type { CountryCode } from "@/lib/engine/types";
 import { buildMetadata } from "@/lib/seo/metadata";
 import { quizLd } from "@/lib/seo/schema";
@@ -26,10 +27,9 @@ export async function generateMetadata({
   const { country } = await params;
   if (!isCountryCode(country)) return {};
   const def = getCountryPage(country, "practice-test")!;
-  const name = COUNTRY_NAMES[country];
   return buildMetadata({
-    title: def.title(name),
-    description: def.description(name),
+    title: def.title,
+    description: def.description,
     path: `/${country}/practice-test`,
   });
 }
@@ -55,11 +55,12 @@ async function PracticeInfo({ code }: { code: CountryCode }) {
         <ExamFacts summary={summary} />
       </section>
       <OfficialSource summary={summary} />
-      <Faq items={faq} />
+      {/* The hub page carries the same FAQ with FAQPage markup; avoid duplicating it here. */}
+      <Faq items={faq} withSchema={false} />
       {questions.length > 0 && (
         <JsonLd
           data={quizLd({
-            name: `${COUNTRY_NAMES[code]} citizenship practice test`,
+            name: getCountryPage(code, "practice-test")!.heading,
             url: `${SITE_URL}/${code}/practice-test`,
             questions,
           })}
@@ -82,8 +83,9 @@ export default async function PracticeTestPage({ params }: PageProps<"/[country]
         ]}
       />
       <h1 className="mb-6 text-3xl font-bold">
-        {COUNTRY_NAMES[country]} citizenship practice test
+        {getCountryPage(country, "practice-test")!.heading}
       </h1>
+      <PageNav code={country} current="practice-test" />
       <TestPlayer country={country} />
       <Suspense fallback={<div className="mt-10 min-h-[70vh]" aria-hidden="true" />}>
         <PracticeInfo code={country} />

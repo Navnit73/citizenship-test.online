@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { DynamicMarker } from "@/components/content/DynamicMarker";
 import { PageFallback } from "@/components/site/PageFallback";
 import { CountryPageView } from "@/components/site/CountryPageView";
-import { COUNTRY_NAMES, isCountryCode } from "@/lib/countries";
+import { isCountryCode } from "@/lib/countries";
 import { buildMetadata } from "@/lib/seo/metadata";
 import { allCountryPageParams, countryPagePath, getCountryPage } from "@/lib/site/country-pages";
 import { getSlotPost } from "@/lib/site/data";
@@ -21,7 +21,6 @@ export async function generateMetadata({
   if (!isCountryCode(country)) return {};
   const def = getCountryPage(country, page);
   if (!def) return {};
-  const name = COUNTRY_NAMES[country];
   // Long-form pages stay out of the index until someone has actually written them.
   let noindex = false;
   if (def.kind === "guide" || def.kind === "howto" || def.kind === "english") {
@@ -29,8 +28,8 @@ export async function generateMetadata({
     noindex = (await getSlotPost(country, page)) === null;
   }
   return buildMetadata({
-    title: def.title(name),
-    description: def.description(name),
+    title: def.title,
+    description: def.description,
     path: countryPagePath(country, page),
     noindex,
   });

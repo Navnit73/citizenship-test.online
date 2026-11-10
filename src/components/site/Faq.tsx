@@ -2,7 +2,16 @@ import { faqLd } from "@/lib/seo/schema";
 import type { FaqItem } from "@/lib/site/exam-describe";
 import { JsonLd } from "./JsonLd";
 
-export function Faq({ items, id = "faq" }: { items: FaqItem[]; id?: string }) {
+export function Faq({
+  items,
+  id = "faq",
+  withSchema = true,
+}: {
+  items: FaqItem[];
+  id?: string;
+  /** Emit FAQPage markup. Turn off when another page already marks up the same answers. */
+  withSchema?: boolean;
+}) {
   return (
     <section aria-labelledby={`${id}-heading`} id={id}>
       <h2 id={`${id}-heading`} className="mb-3 text-2xl font-bold">
@@ -16,7 +25,7 @@ export function Faq({ items, id = "faq" }: { items: FaqItem[]; id?: string }) {
           </details>
         ))}
       </div>
-      <JsonLd data={faqLd(items)} />
+      {withSchema && <JsonLd data={faqLd(items)} />}
     </section>
   );
 }

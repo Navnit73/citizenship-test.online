@@ -7,7 +7,10 @@ import "@/lib/db/models";
 import { connectDb } from "@/lib/db/connect";
 import { postsRepo } from "@/lib/db/repos/posts";
 import { testsRepo } from "@/lib/db/repos/tests";
+import { isCountryCode } from "@/lib/countries";
+import type { CountryCode } from "@/lib/engine/types";
 import {
+  getCountrySummaries,
   getPostBySlug,
   getPostList,
   getTestBySlug,
@@ -48,9 +51,10 @@ const ALL_TYPES = ["blog", "guide", "howto", "legal", "page"] as const;
 export async function listSitemapEntries() {
   await connection();
   await connectDb();
-  const [lists, tests] = await Promise.all([
+  const [lists, tests, countries] = await Promise.all([
     Promise.all(ALL_TYPES.map((t) => postsRepo.listPublished(t))),
     testsRepo.listPublished(),
+    getCountrySummaries(),
   ]);
   return {
     posts: lists.flatMap((list, i) =>
@@ -63,6 +67,12 @@ export async function listSitemapEntries() {
           lastModified: updated(p) ?? p.publishedAt ?? undefined,
         })),
     ),
-    tests: tests.map((t) => ({ slug: t.slug, lastModified: updated(t) })),
+    // Same rules as the page itself: noindex tests and tests for unknown countries (404) stay out.
+    tests: tests
+      .filter((t) => !t.seo?.noindex && isCountryCode(t.countryCode))
+      .map((t) => ({ slug: t.slug, lastModified: updated(t) })),
+    countryReviewed: Object.fromEntries(
+      countries.map((c) => [c.code, c.lastReviewedAt ? new Date(c.lastReviewedAt) : undefined]),
+    ) as Partial<Record<CountryCode, Date | undefined>>,
   };
 }

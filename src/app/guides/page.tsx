@@ -1,8 +1,9 @@
-import type { Metadata } from "next";
-import { PostListPage } from "@/components/content/PostPages";
+import { PostListPage, listingMetadata } from "@/components/content/PostPages";
 
-export const metadata: Metadata = { title: "Guides" };
+export function generateMetadata() {
+  return listingMetadata("guide");
+}
 
 export default function Page() {
-  return <PostListPage type="guide" title="Guides" />;
+  return <PostListPage type="guide" />;
 }

@@ -7,7 +7,9 @@ import { POST_BASE_PATH, POST_LABEL, postPath, type PublicPostType } from "@/lib
 import { getPublicPost, listPublicPosts } from "@/lib/cms/public";
 import { articleLd } from "@/lib/seo/schema";
 import { buildMetadata, truncate } from "@/lib/seo/metadata";
-import { slotTarget } from "@/lib/site/country-pages";
+import { COUNTRY_CODES, isCountryCode } from "@/lib/countries";
+import type { CountryCode } from "@/lib/engine/types";
+import { getCountryPage, hubPage, hubPath, slotTarget } from "@/lib/site/country-pages";
 import { SITE_URL } from "@/lib/site/config";
 import { PageFallback } from "@/components/site/PageFallback";
 import { Breadcrumbs } from "@/components/site/Breadcrumbs";
@@ -21,11 +23,50 @@ const fmt = (d?: string | Date | null) =>
     ? new Date(d).toLocaleDateString("en-GB", { year: "numeric", month: "long", day: "numeric" })
     : "";
 
-async function PostList({ type, title }: { type: PublicPostType; title: string }) {
+/** Copy for the /blog, /guides, /how-to and /legal index pages. */
+export const LISTING: Record<
+  Exclude<PublicPostType, "page">,
+  { title: string; heading: string; description: string }
+> = {
+  blog: {
+    title: "Citizenship test blog",
+    heading: "Citizenship test blog",
+    description:
+      "News and articles on citizenship tests in the US, UK, Canada and Australia, including rule changes, study tips and what to expect on test day.",
+  },
+  guide: {
+    title: "Citizenship test guides",
+    heading: "Citizenship test guides",
+    description:
+      "In-depth guides to the US, UK, Canadian and Australian citizenship tests: what each test covers, how it is scored and how to prepare.",
+  },
+  howto: {
+    title: "How-to guides for the citizenship process",
+    heading: "How-to guides",
+    description:
+      "Step-by-step guides to booking, applying for and preparing for citizenship tests in the US, UK, Canada and Australia.",
+  },
+  legal: {
+    title: "Legal information and policies",
+    heading: "Legal information",
+    description:
+      "The disclaimer, editorial and accuracy policy, cookie policy and other legal information for citizenship-test.online.",
+  },
+};
+
+async function PostList({ type }: { type: Exclude<PublicPostType, "page"> }) {
   const posts = await listPublicPosts(type);
+  const copy = LISTING[type];
   return (
     <main>
-      <h1 className="mb-6 text-3xl font-bold">{title}</h1>
+      <Breadcrumbs
+        items={[
+          { name: "Home", path: "/" },
+          { name: POST_LABEL[type], path: POST_BASE_PATH[type] },
+        ]}
+      />
+      <h1 className="mb-3 text-3xl font-bold">{copy.heading}</h1>
+      <p className="mb-6 max-w-2xl">{copy.description}</p>
       {posts.length === 0 ? (
         <p>Nothing published yet.</p>
       ) : (
@@ -43,15 +84,56 @@ async function PostList({ type, title }: { type: PublicPostType; title: string }
           ))}
         </ul>
       )}
+      {type !== "legal" && <CountryLinks />}
     </main>
   );
 }
 
-export function PostListPage(props: { type: PublicPostType; title: string }) {
+export function PostListPage(props: { type: Exclude<PublicPostType, "page"> }) {
   return (
     <Suspense fallback={<PageFallback />}>
       <PostList {...props} />
     </Suspense>
+  );
+}
+
+/** Index pages stay out of search results until they list something. */
+export async function listingMetadata(type: Exclude<PublicPostType, "page">): Promise<Metadata> {
+  const posts = await listPublicPosts(type);
+  const copy = LISTING[type];
+  return buildMetadata({
+    title: copy.title,
+    description: copy.description,
+    path: POST_BASE_PATH[type],
+    noindex: posts.length === 0,
+  });
+}
+
+/** Practice-test links for every country: the main conversion path from any article. */
+function CountryLinks({ only }: { only?: CountryCode }) {
+  const codes = only ? [only] : COUNTRY_CODES;
+  return (
+    <aside
+      aria-labelledby="practice-links-heading"
+      className="mt-10 rounded border border-base-300 p-4"
+    >
+      <h2 id="practice-links-heading" className="mb-2 text-xl font-semibold">
+        {only ? `Prepare for the ${hubPage(only).label}` : "Practise for your citizenship test"}
+      </h2>
+      <ul className="list-disc space-y-1 pl-6">
+        {codes.map((c) => (
+          <li key={c}>
+            <Link href={`/${c}/practice-test`} className="link">
+              {getCountryPage(c, "practice-test")!.heading}
+            </Link>
+            {" · "}
+            <Link href={hubPath(c)} className="link">
+              {hubPage(c).label} rules and format
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </aside>
   );
 }
 
@@ -79,6 +161,11 @@ async function PostDetail({ type, slug }: { type: PublicPostType; slug: string }
         <Toc items={toc} />
         <Prose html={html} />
       </article>
+      {type !== "legal" && (
+        <CountryLinks
+          only={post.countryCode && isCountryCode(post.countryCode) ? post.countryCode : undefined}
+        />
+      )}
       {type !== "legal" && type !== "page" && (
         <JsonLd
           data={articleLd(SITE_URL, {
@@ -136,5 +223,7 @@ export async function postMetadata(
     path: slot ?? postPath(type, slug),
     noindex: !!post.seo?.noindex || !!slot,
     type: type === "blog" || type === "guide" || type === "howto" ? "article" : "website",
+    publishedTime: post.publishedAt,
+    modifiedTime: post.updatedAt,
   });
 }

@@ -22,6 +22,8 @@ export default defineConfig({
       AUTH_TRUST_HOST: "true",
       AUTH_URL: E2E_URL,
       SITE_URL: E2E_URL,
+      // localhost is non-indexable by default; the crawler-file tests need the real output.
+      ALLOW_INDEXING: "true",
       PORT: String(E2E_PORT),
     },
     reuseExistingServer: false,

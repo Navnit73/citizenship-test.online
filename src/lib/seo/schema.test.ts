@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { articleLd, breadcrumbLd, faqLd, organizationLd, quizLd, serializeLd } from "./schema";
+import {
+  articleLd,
+  breadcrumbLd,
+  faqLd,
+  organizationLd,
+  quizLd,
+  serializeLd,
+  websiteLd,
+} from "./schema";
 
 const SITE = "https://example.test";
 
@@ -8,8 +16,16 @@ describe("json-ld builders", () => {
     expect(organizationLd(SITE)).toMatchObject({
       "@context": "https://schema.org",
       "@type": "Organization",
-      url: SITE,
+      "@id": "https://example.test/#organization",
+      url: "https://example.test/",
       name: "citizenship-test.online",
+    });
+  });
+  it("website points at the organization as publisher", () => {
+    expect(websiteLd(SITE)).toMatchObject({
+      "@type": "WebSite",
+      "@id": "https://example.test/#website",
+      publisher: { "@id": "https://example.test/#organization" },
     });
   });
   it("breadcrumbs are 1-indexed with absolute URLs", () => {
@@ -48,6 +64,8 @@ describe("json-ld builders", () => {
       datePublished: "2026-01-02T00:00:00.000Z",
       dateModified: "2026-02-03T00:00:00.000Z",
       mainEntityOfPage: "https://example.test/guides/t",
+      author: { "@id": "https://example.test/#organization" },
+      publisher: { "@id": "https://example.test/#organization" },
     });
   });
   it("article omits missing optional fields", () => {
